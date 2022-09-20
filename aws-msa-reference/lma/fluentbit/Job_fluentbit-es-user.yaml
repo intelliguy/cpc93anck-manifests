@@ -1,0 +1,54 @@
+# Source: fluentbit-resource/templates/fluentbit/job-create-user.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: fluentbit-es-user
+  namespace: lma
+  annotations:
+    "helm.sh/hook": pre-install
+    "helm.sh/hook-weight": "2"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+  labels:
+    app: fluentbit-resource
+spec:
+  template:
+    metadata:
+      name: fluentbit-es-template
+      labels:
+        app: fluentbit-resource
+        
+        chart: fluentbit-resource-1.1.0
+        release: "fluentbit"
+        heritage: "Helm"
+    spec:
+      nodeSelector:
+        taco-lma: enabled
+      containers:
+      - name: esuser-taco-es
+        image: "docker.io/openstackhelm/heat:newton"
+        imagePullPolicy: "IfNotPresent"
+        env:
+        - name: ES_URL
+          value: https://eck-elasticsearch-es-http:9200
+        - name: ELASTIC_PW
+          valueFrom:
+            secretKeyRef:
+              name: eck-elasticsearch-es-elastic-user
+              key: elastic
+        command:
+        - timeout
+        - 5m
+        - /tmp/create_user_taco-es.sh
+        - taco-fluentbit
+        - password
+        volumeMounts:
+        - name: fluentbit-configmap
+          mountPath: /tmp/create_user_taco-es.sh
+          subPath: create_user_taco-es.sh
+          readOnly: true
+      restartPolicy: OnFailure
+      volumes:
+      - name: fluentbit-configmap
+        configMap:
+          name: fluentbit-configmap
+          defaultMode: 0777

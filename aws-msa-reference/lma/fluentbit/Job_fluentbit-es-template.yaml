@@ -1,0 +1,97 @@
+# Source: fluentbit-resource/templates/fluentbit/job-es-template.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: fluentbit-es-template
+  namespace: lma
+  annotations:
+    "helm.sh/hook": pre-install
+    "helm.sh/hook-weight": "3"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+  labels:
+    app: fluentbit-resource
+    
+    chart: fluentbit-resource-1.1.0
+    release: "fluentbit"
+    heritage: "Helm"
+spec:
+  template:
+    metadata:
+      name: fluentbit-es-template
+      labels:
+        app: fluentbit-resource
+        
+        chart: fluentbit-resource-1.1.0
+        release: "fluentbit"
+        heritage: "Helm"
+    spec:
+      nodeSelector:
+        taco-lma: enabled
+      containers:
+      - name: template-taco-es
+        image: "docker.io/openstackhelm/heat:newton"
+        imagePullPolicy: "IfNotPresent"
+        env:
+          - name: ES_URL
+            value: https://eck-elasticsearch-es-http:9200
+          - name: ES_USER
+            value: taco-fluentbit
+          - name: ES_PW
+            value: password
+          - name: ELASTIC_PW
+            valueFrom:
+              secretKeyRef:
+                name: eck-elasticsearch-es-elastic-user
+                key: elastic
+        command:
+        - /bin/sh
+        - -c
+        - /tmp/create_template_taco-es.sh
+        volumeMounts:
+        - name: fluentbit-configmap
+          mountPath: /tmp/create_template_taco-es.sh
+          subPath: create_template_taco-es.sh
+          readOnly: true
+        - name: fluentbit-configmap
+          mountPath: /tmp/template-platform_taco-es.json
+          subPath: template-platform_taco-es.json
+          readOnly: true
+        - name: fluentbit-configmap
+          mountPath: /tmp/template-application_taco-es.json
+          subPath: template-application_taco-es.json
+          readOnly: true
+        - name: fluentbit-configmap
+          mountPath: /tmp/template-syslog_taco-es.json
+          subPath: template-syslog_taco-es.json
+          readOnly: true
+        - name: fluentbit-configmap
+          mountPath: /tmp/ilm-hot-delete-14days_taco-es.json
+          subPath: ilm-hot-delete-14days_taco-es.json
+          readOnly: true
+        - name: fluentbit-configmap
+          mountPath: /tmp/ilm-hot-delete-7days_taco-es.json
+          subPath: ilm-hot-delete-7days_taco-es.json
+          readOnly: true
+        - name: fluentbit-configmap
+          mountPath: /tmp/ilm-hot-delete-3hour_taco-es.json
+          subPath: ilm-hot-delete-3hour_taco-es.json
+          readOnly: true
+        - name: fluentbit-configmap
+          mountPath: /tmp/index-container_taco-es.json
+          subPath: index-container_taco-es.json
+          readOnly: true
+        - name: fluentbit-configmap
+          mountPath: /tmp/index-platform_taco-es.json
+          subPath: index-platform_taco-es.json
+          readOnly: true
+        - name: fluentbit-configmap
+          mountPath: /tmp/index-syslog_taco-es.json
+          subPath: index-syslog_taco-es.json
+          readOnly: true
+      restartPolicy: OnFailure
+      volumes:
+      - name: fluentbit-configmap
+        configMap:
+          name: fluentbit-configmap
+          defaultMode: 365
+

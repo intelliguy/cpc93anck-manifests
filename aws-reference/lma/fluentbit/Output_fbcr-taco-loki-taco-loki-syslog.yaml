@@ -1,0 +1,20 @@
+# Source: fluentbit-resource/templates/fluentbit/outputs.yaml
+# Loki taco-loki
+apiVersion: logging.kubesphere.io/v1alpha2
+kind: Output
+metadata:
+  name: fbcr-taco-loki-taco-loki-syslog
+  namespace: lma
+  labels:
+    logging.kubesphere.io/enabled: "true"
+    app.kubernetes.io/version: v0.0.1
+spec:
+  match: "syslog.*"
+  loki:
+    autoKubernetesLabels: "on"
+    host: loki
+    port: 3100
+    labels:
+    - job=syslog
+    - $host
+    - $ident

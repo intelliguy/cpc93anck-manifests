@@ -1,0 +1,29 @@
+# Source: fluentbit-resource/templates/fluentbit/outputs.yaml
+# Elasticsearch index  in taco-es
+apiVersion: logging.kubesphere.io/v1alpha2
+kind: Output
+metadata:
+  name: fbcr-taco-taco-es-container
+  namespace: lma
+  labels:
+    logging.kubesphere.io/enabled: "true"
+    app.kubernetes.io/version: v0.0.1
+spec:
+  match: "kube.*"
+  es:
+    index: container
+    host: eck-elasticsearch-es-http
+    port: 9200
+    type: fluent
+    httpUser:
+      valueFrom:
+        secretKeyRef:
+          name: fluentbit-es-user-taco-es
+          key: username
+    httpPassword:
+      valueFrom:
+        secretKeyRef:
+          name: fluentbit-es-user-taco-es
+          key: password
+    tls:
+      verify: false

@@ -1,0 +1,22 @@
+# Source: fluentbit-resource/templates/fluentbit/outputs.yaml
+# outputs for loki---
+# Loki taco-loki
+apiVersion: logging.kubesphere.io/v1alpha2
+kind: Output
+metadata:
+  name: fbcr-taco-loki-taco-loki-kube
+  namespace: lma
+  labels:
+    logging.kubesphere.io/enabled: "true"
+    app.kubernetes.io/version: v0.0.1
+spec:
+  match: "kube.*"
+  loki:
+    autoKubernetesLabels: "on"
+    host: loki
+    port: 3100
+    labels:
+    - job=container
+    - $kubernetes['pod_name']
+    - $kubernetes['namespace_name']
+    - $kubernetes['container_name']
